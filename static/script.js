@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() { 
     const imageUpload = document.getElementById('imageUpload');
     const preview = document.getElementById('preview');
     const testButton = document.getElementById('testButton');
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let uploadedImages = [];
 
+    // Handle image uploads and preview
     imageUpload.addEventListener('change', function(event) {
         preview.innerHTML = '';
         uploadedImages = [];
@@ -20,12 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     img.className = 'preview-image';
                     preview.appendChild(img);
                     uploadedImages.push({file: file, data: e.target.result});
-                }
+                };
                 reader.readAsDataURL(file);
             }
         }
     });
 
+    // Handle testing the selected model
     testButton.addEventListener('click', function() {
         if (uploadedImages.length === 0) {
             alert('Please upload at least one image before testing.');
@@ -37,17 +39,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
         uploadedImages.forEach((image, index) => {
             if (selectedModel === 'logoRecognition') {
-                testLogoRecognition(image, index);
+                testNewLogoRecognitionModel(image, index);
             } else if (selectedModel === 'freshnessDetection') {
                 testFreshnessDetection(image, index);
             }
         });
     });
 
+    // Function to test the freshness detection model
     function testFreshnessDetection(image, index) {
         const formData = new FormData();
         formData.append('image', image.file);
-        formData.append('produce_type', 'unknown'); // You might want to add a way for users to specify this
+        formData.append('produce_type', 'unknown'); // You can add user input for this
 
         fetch('/test_freshness', {
             method: 'POST',
@@ -56,16 +59,16 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             const result = `
-               <div class="result-item">
-                <img src="${image.data}" alt="Uploaded Image" class="result-image">
-                <div class="result-details">
-                    <h3>Results for Image ${index + 1}</h3>
-                    <p>Freshness: ${data.freshness}</p>
-                    <p>Fresh Probability: ${(data.fresh_probability * 100).toFixed(2)}%</p>
-                    <p>Rotten Probability: ${(data.rotten_probability * 100).toFixed(2)}%</p>
-                    <p>Estimated Shelf Life: ${data.estimated_shelf_life} days</p>
+                <div class="result-item">
+                    <img src="${image.data}" alt="Uploaded Image" class="result-image">
+                    <div class="result-details">
+                        <h3>Results for Image ${index + 1}</h3>
+                        <p>Freshness: ${data.freshness}</p>
+                        <p>Fresh Probability: ${(data.fresh_probability * 100).toFixed(2)}%</p>
+                        <p>Rotten Probability: ${(data.rotten_probability * 100).toFixed(2)}%</p>
+                        <p>Estimated Shelf Life: ${data.estimated_shelf_life} days</p>
+                    </div>
                 </div>
-            </div>
             `;
             resultsDisplay.innerHTML += result;
         })
@@ -75,7 +78,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function testLogoRecognition(image, index) {
+    // Function to test the new logo recognition model
+    function testNewLogoRecognitionModel(image, index) {
         const formData = new FormData();
         formData.append('image', image.file);
 
@@ -87,13 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             const result = `
                 <div class="result-item">
-                <img src="${image.data}" alt="Uploaded Image" class="result-image">
-                <div class="result-details">
-                    <h3>Results for Image ${index + 1}</h3>
-                    <p>Detected Logo: ${data.predicted_logo}</p>
-                    <p>Predicted Count: ${data.predicted_count}</p>
+                    <img src="${image.data}" alt="Uploaded Image" class="result-image">
+                    <div class="result-details">
+                        <h3>Results for Image ${index + 1}</h3>
+                        <p>Detected Logo: ${data.predicted_brand}</p>
+                        <p>Predicted Count: ${data.predicted_count}</p>
+                    </div>
                 </div>
-            </div>
             `;
             resultsDisplay.innerHTML += result;
         })
@@ -103,6 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Function to download results as a text file
     downloadResults.addEventListener('click', function() {
         const results = resultsDisplay.innerText;
         const blob = new Blob([results], {type: 'text/plain'});
