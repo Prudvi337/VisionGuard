@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify, render_template
-import torch 
+import torch
 from torchvision import transforms
 from PIL import Image
 import os
-import io
-import base64
-from src.logo import LogoRecognitionModel
+from src.logo import BrandRecognitionModel  # Import the new model class
+
 # Constants
 IMG_SIZE = 128
 
@@ -22,9 +21,9 @@ def create_freshness_model():
     model.classifier[1] = torch.nn.Linear(model.last_channel, 2)
     return model
 
-# Function to create the logo recognition model
-def create_logo_model(num_subcategories):
-    model = LogoRecognitionModel(num_subcategories)
+# Function to create the new logo recognition model
+def create_logo_model(num_brands):
+    model = BrandRecognitionModel(num_brands)  # Use your updated BrandRecognitionModel
     return model
 
 # Function to interpret freshness levels
@@ -58,12 +57,12 @@ def predict_freshness(image, model, device):
     return freshness_label, fresh_prob, rotten_prob
 
 # Function to make logo predictions
-def predict_logo(model, image_path, subcategories, device='cuda'):
+def predict_logo(model, image_path, brands, device='cuda'):
     model.to(device)
     model.eval()
     
     transform = transforms.Compose([
-        transforms.Resize((224, 224)),
+        transforms.Resize((160, 160)),  # Adjusted size to match your training script
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -72,13 +71,12 @@ def predict_logo(model, image_path, subcategories, device='cuda'):
     image_tensor = transform(image).unsqueeze(0).to(device)
     
     with torch.no_grad():
-        subcategory_output, count_output = model(image_tensor)
+        brand_output = model(image_tensor)
     
-    subcategory_idx = torch.argmax(subcategory_output, dim=1).item()
-    predicted_subcategory = subcategories[subcategory_idx]
-    predicted_count = count_output.squeeze().item()
+    brand_idx = torch.argmax(brand_output, dim=1).item()
+    predicted_brand = brands[brand_idx]
     
-    return predicted_subcategory, predicted_count
+    return predicted_brand
 
 # Function to estimate shelf life
 def estimate_shelf_life(freshness, fresh_probability, produce_type):
@@ -110,6 +108,7 @@ app = Flask(__name__)
 @app.route('/')
 def home():
     return render_template('index.html')
+
 # Load the models
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -118,12 +117,19 @@ freshness_model = create_freshness_model()
 freshness_model.load_state_dict(torch.load('freshness_model.pth', map_location=device))
 freshness_model.to(device)
 
-# Load logo recognition model
-# Assuming you have a way to get the number of subcategories and the subcategories list
-num_subcategories = 153  # Update this with the correct number
-subcategories = ['subcategory1', 'subcategory2', ...]  # Update this with the correct list
-logo_model = create_logo_model(num_subcategories)
-logo_model.load_state_dict(torch.load('logo_recognition_model.pth', map_location=device))
+# Function to load brand names from a text file
+def load_brands(file_path):
+    with open(file_path, 'r') as f:
+        brands = [line.strip() for line in f if line.strip()]  # Read and strip whitespace
+    return brands
+
+# Load the new logo recognition model
+brands_file_path = 'data/Logo/brands.txt'  # Path to your brands text file
+brands = load_brands(brands_file_path)  # Load the brands from the text file
+num_brands = len(brands)  # Get the number of brands
+
+logo_model = create_logo_model(num_brands)
+logo_model.load_state_dict(torch.load('brand_recognition_model.pth', map_location=device))  # Load the new trained model
 logo_model.to(device)
 
 @app.route('/test_freshness', methods=['POST'])
@@ -160,14 +166,13 @@ def test_logo():
         temp_path = 'temp_image.jpg'
         image_file.save(temp_path)
         
-        predicted_subcategory, predicted_count = predict_logo(logo_model, temp_path, subcategories, device)
+        predicted_brand = predict_logo(logo_model, temp_path, brands, device)
         
         # Remove the temporary file
         os.remove(temp_path)
         
         return jsonify({
-            'predicted_logo': predicted_subcategory,
-            'predicted_count': predicted_count
+            'predicted_brand': predicted_brand
         })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
