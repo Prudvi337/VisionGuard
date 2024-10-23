@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VisionGuard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23FFD700'/><path d='M8 8 L16 24 L24 8' fill='none' stroke='%23007bff' stroke-width='3' stroke-linejoin='round'/><path d='M6 12 Q16 28 26 12' fill='none' stroke='%23976600' stroke-width='2' stroke-linecap='round' stroke-opacity='0.6'/></svg>">
     <style>
         * {
             box-sizing: border-box;
@@ -178,11 +179,52 @@
     </style>
 </head>
 <body>
-    <header id="site-header">
-        <h1>VisionGuard</h1>
+    <header id="site-header"> 
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 80" style="width: 30%; height: auto;">
+          <!-- Gradient definitions -->
+          <defs>
+            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#FFD700"/>
+              <stop offset="100%" style="stop-color:#FFA500"/>
+            </linearGradient>
+            <linearGradient id="goldShine" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#DAA520"/>
+              <stop offset="100%" style="stop-color:#FFD700"/>
+            </linearGradient>
+          </defs>
+      
+          <!-- Subtle shadow effect -->
+          <text x="45" y="60" 
+                font-family="Arial, sans-serif" 
+                font-size="48" 
+                font-weight="900" 
+                fill="#976600"
+                letter-spacing="-1"
+                opacity="0.3">VISIONGUARD</text>
+      
+          <!-- Main text with adjusted spacing -->
+          <text x="40" y="60" 
+                font-family="Arial, sans-serif" 
+                font-size="48" 
+                font-weight="900" 
+                fill="url(#goldGradient)"
+                letter-spacing="-1">VISION</text>
+          <text x="220" y="60" 
+                font-family="Arial, sans-serif" 
+                font-size="48" 
+                font-weight="900"
+                fill="url(#goldShine)"
+                letter-spacing="-1">GUARD</text>
+      
+          <!-- Decorative line -->
+          <path d="M45 65 Q200 70 355 65" 
+                fill="none" 
+                stroke="url(#goldGradient)" 
+                stroke-width="1.5"/>
+        </svg>
         <p>Advanced Image Analysis for Freshness Detection and Logo Recognition</p>
-    </header>
-    <main>
+      </header>
+      <main>
         <div id="container">
             <section id="upload-section">
                 <h2>Upload Images</h2>
